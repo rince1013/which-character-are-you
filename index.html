@@ -388,10 +388,15 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
-        <button id="resetDefaultsBtn" class="text-xs text-slate-400 hover:text-pink-400 transition underline font-sans">
-          Reset to Default Characters
-        </button>
+      <div class="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button id="resetDefaultsBtn" class="text-xs text-slate-400 hover:text-pink-400 transition underline font-sans">
+            Reset to Default Characters
+          </button>
+          <button id="loadManifestCharactersBtn" disabled class="text-xs text-slate-400 hover:text-pink-400 transition underline font-sans disabled:opacity-50 disabled:cursor-not-allowed">
+            Load All Clipart Characters
+          </button>
+        </div>
         <button id="saveManagerBtn" class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm transition">
           Done
         </button>
@@ -452,6 +457,7 @@
     const newImageInput = document.getElementById('newImage');
     const imageLibraryStatus = document.getElementById('imageLibraryStatus');
     const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+    const loadManifestCharactersBtn = document.getElementById('loadManifestCharactersBtn');
 
     let characterImages = [];
 
@@ -496,6 +502,7 @@
         characterImages = images;
         populateImageSelect(newImageInput);
         imageLibraryStatus.textContent = `${images.length} clipart images available`;
+        loadManifestCharactersBtn.disabled = images.length === 0;
         renderCharacterList();
       } catch (error) {
         console.error('Unable to load character clipart:', error);
@@ -573,6 +580,34 @@
     function playVictorySound() {
       if (!audioEnabled || !audioCtx) return;
       try {
+        if (document.body.dataset.theme === 'pokemon') {
+          const notes = [
+            { frequency: 587.33, start: 0, duration: 0.09 },
+            { frequency: 739.99, start: 0.09, duration: 0.09 },
+            { frequency: 880, start: 0.18, duration: 0.13 },
+            { frequency: 1174.66, start: 0.31, duration: 0.19 },
+            { frequency: 880, start: 0.52, duration: 0.08 },
+            { frequency: 1174.66, start: 0.61, duration: 0.1 },
+            { frequency: 1479.98, start: 0.72, duration: 0.2 }
+          ];
+
+          notes.forEach(({ frequency, start, duration }) => {
+            const noteStart = audioCtx.currentTime + start;
+            const oscillator = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(frequency, noteStart);
+            gain.gain.setValueAtTime(0.0001, noteStart);
+            gain.gain.linearRampToValueAtTime(0.08, noteStart + 0.006);
+            gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + duration);
+            oscillator.connect(gain);
+            gain.connect(audioCtx.destination);
+            oscillator.start(noteStart);
+            oscillator.stop(noteStart + duration);
+          });
+          return;
+        }
+
         const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
         notes.forEach((freq, index) => {
           const osc = audioCtx.createOscillator();
@@ -689,7 +724,8 @@
 
         showCharacterArtwork(item);
         charName.textContent = item.name;
-        charSubtitle.textContent = item.title || "Selected Character";
+        charSubtitle.textContent = item.title || '';
+        charSubtitle.classList.toggle('hidden', !item.title);
 
         playTickSound();
         counter++;
@@ -816,8 +852,8 @@
       const name = newNameInput.value.trim();
 
       if (name) {
-        const character = { name, emoji, title: "Custom Hero" };
-        const image = newImageInput.value.trim();
+        const image = newImageInput.value;
+        const character = { name, emoji };
         if (image) character.image = image;
         characters.unshift(character);
         saveCharacters();
@@ -831,6 +867,16 @@
     // Reset Defaults
     resetDefaultsBtn.addEventListener('click', () => {
       characters = [...DEFAULT_CHARACTERS];
+      saveCharacters();
+      renderCharacterList();
+    });
+
+    loadManifestCharactersBtn.addEventListener('click', () => {
+      characters = characterImages.map((image) => ({
+        name: image.name,
+        emoji: '⭐',
+        image: image.path
+      }));
       saveCharacters();
       renderCharacterList();
     });
