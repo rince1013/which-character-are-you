@@ -81,9 +81,162 @@
       background: rgba(236, 72, 153, 0.6);
       border-radius: 8px;
     }
+
+    body[data-theme="pokemon"] {
+      background-color: #fff;
+      color: #1F2B7A;
+    }
+
+    body[data-theme="pokemon"] header {
+      background-color: rgba(255, 255, 255, 0.96);
+      border-color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] header > div:first-child > div:first-child {
+      background-image: linear-gradient(to top right, #FFDE00, #B3A125);
+      box-shadow: 0 8px 14px rgba(59, 76, 202, 0.2);
+    }
+
+    body[data-theme="pokemon"] header > div:first-child > div:first-child i {
+      color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] header h1 {
+      background-image: linear-gradient(to right, #3B4CCA, #1F2B7A);
+    }
+
+    body[data-theme="pokemon"] header button,
+    body[data-theme="pokemon"] #themeSelect {
+      background-color: #fff;
+      border-color: #3B4CCA;
+      color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #openManagerBtn {
+      background-image: linear-gradient(to right, #3B4CCA, #1F2B7A);
+      color: #FFDE00;
+    }
+
+    body[data-theme="pokemon"] #cameraViewport {
+      border-color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #cameraPrompt {
+      background-color: #fff;
+    }
+
+    body[data-theme="pokemon"] #cameraPrompt > div:first-child {
+      background-color: #FFDE00;
+      border-color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #cameraPrompt button {
+      background-color: #FF0000;
+      color: #fff;
+    }
+
+    body[data-theme="pokemon"] #cameraPrompt h2 {
+      color: #1F2B7A;
+    }
+
+    body[data-theme="pokemon"] #cameraPrompt p {
+      color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #filterCard {
+      background-image: linear-gradient(to bottom, #fff 0%, #fff 84%, rgba(255, 222, 0, 0.2) 100%);
+      border-color: #3B4CCA;
+      box-shadow: 0 8px 24px rgba(59, 76, 202, 0.28);
+    }
+
+    body[data-theme="pokemon"] #filterCard > div:first-child {
+      color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #filterCard > div:first-child span {
+      background-color: #FF0000;
+    }
+
+    body[data-theme="pokemon"] #filterCard #charName {
+      color: #1F2B7A;
+      text-shadow: none;
+    }
+
+    body[data-theme="pokemon"] #filterCard #charSubtitle {
+      color: #B3A125;
+    }
+
+    body[data-theme="pokemon"] #filterCard > div:last-child {
+      border-top-color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #spinBtn {
+      background-image: linear-gradient(to right, #FFDE00, #B3A125);
+      color: #1F2B7A;
+      box-shadow: 0 12px 24px rgba(59, 76, 202, 0.25);
+    }
+
+    body[data-theme="pokemon"] footer > div {
+      background-color: rgba(255, 255, 255, 0.9);
+      border-color: #3B4CCA;
+      color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #managerModal {
+      background-color: rgba(31, 43, 122, 0.55);
+    }
+
+    body[data-theme="pokemon"] #managerModal > div {
+      background-color: #fff;
+      border-color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #managerModal .text-white {
+      color: #1F2B7A;
+    }
+
+    body[data-theme="pokemon"] #managerModal .text-slate-400,
+    body[data-theme="pokemon"] #managerModal .text-slate-500 {
+      color: #3B4CCA;
+    }
+
+    body[data-theme="pokemon"] #managerModal .text-pink-500 {
+      color: #CC0000;
+    }
+
+    body[data-theme="pokemon"] #characterList > div {
+      background-color: #fff;
+      border-color: rgba(59, 76, 202, 0.35);
+    }
+
+    body[data-theme="pokemon"] #characterList input,
+    body[data-theme="pokemon"] #managerModal input,
+    body[data-theme="pokemon"] #managerModal button {
+      background-color: #fff;
+      border-color: rgba(59, 76, 202, 0.45);
+      color: #1F2B7A;
+    }
+
+    body[data-theme="pokemon"] #managerModal button[type="submit"] {
+      background-color: #FF0000;
+      color: #fff;
+    }
+
+    body[data-theme="pokemon"] #managerModal #saveManagerBtn {
+      background-color: #3B4CCA;
+      color: #FFDE00;
+    }
+
+    body[data-theme="pokemon"] ::-webkit-scrollbar-thumb {
+      background: #FFDE00;
+    }
+
+    body[data-theme="pokemon"] ::-webkit-scrollbar-track {
+      background: rgba(59, 76, 202, 0.12);
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen overflow-hidden flex flex-col items-center justify-between p-4 sm:p-6 select-none">
+<body data-theme="default" class="bg-slate-950 text-white min-h-screen overflow-hidden flex flex-col items-center justify-between p-4 sm:p-6 select-none">
 
   <!-- Header Controls Bar -->
   <header class="w-full max-w-4xl z-30 flex items-center justify-between bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-800 shadow-xl">
@@ -95,11 +248,16 @@
         <h1 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent leading-tight">
           Who Are You?
         </h1>
-        <p class="text-xs text-slate-400 font-sans hidden sm:block">Snapchat Style iPad Character Selector</p>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
+      <label class="sr-only" for="themeSelect">Color theme</label>
+      <select id="themeSelect" class="w-24 sm:w-32 px-2 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700/50 text-white text-xs sm:text-sm focus:outline-none focus:border-pink-500">
+        <option value="default">Classic</option>
+        <option value="pokemon">Pokémon</option>
+      </select>
+
       <!-- Mute/Unmute Audio Button -->
       <button id="toggleAudioBtn" class="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 transition border border-slate-700/50 text-slate-200" title="Toggle Sound">
         <i id="audioIcon" class="fa-solid fa-volume-high text-lg"></i>
@@ -269,6 +427,7 @@
     const cameraPrompt = document.getElementById('cameraPrompt');
     const startCamBtn = document.getElementById('startCamBtn');
     const flipCamBtn = document.getElementById('flipCamBtn');
+    const themeSelect = document.getElementById('themeSelect');
     const toggleAudioBtn = document.getElementById('toggleAudioBtn');
     const audioIcon = document.getElementById('audioIcon');
     const spinBtn = document.getElementById('spinBtn');
@@ -287,6 +446,16 @@
     const newNameInput = document.getElementById('newName');
     const newImageInput = document.getElementById('newImage');
     const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+
+    const savedTheme = localStorage.getItem('wh_theme');
+    const currentTheme = savedTheme === 'pokemon' ? 'pokemon' : 'default';
+    document.body.dataset.theme = currentTheme;
+    themeSelect.value = currentTheme;
+
+    themeSelect.addEventListener('change', () => {
+      document.body.dataset.theme = themeSelect.value;
+      localStorage.setItem('wh_theme', themeSelect.value);
+    });
 
     // Initialize Web Audio Context on User Gesture
     function initAudio() {
@@ -430,7 +599,9 @@
           particleCount: 80,
           spread: 70,
           origin: { y: 0.3 },
-          colors: ['#ec4899', '#8b5cf6', '#3b82f6', '#f59e0b', '#10b981']
+          colors: document.body.dataset.theme === 'pokemon'
+            ? ['#FF0000', '#CC0000', '#3B4CCA', '#FFDE00', '#B3A125']
+            : ['#ec4899', '#8b5cf6', '#3b82f6', '#f59e0b', '#10b981']
         });
       }
     }
