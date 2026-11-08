@@ -157,7 +157,7 @@
 
           <!-- Active Character Display Content -->
           <div id="cardContent" class="flex flex-col items-center justify-center w-full py-1">
-            <div id="charEmoji" class="text-5xl sm:text-6xl mb-1 filter drop-shadow-md transition-transform">❓</div>
+            <div id="charEmoji" class="w-24 h-24 flex items-center justify-center text-5xl sm:text-6xl mb-1 filter drop-shadow-md transition-transform">❓</div>
             <div id="charName" class="text-2xl sm:text-3xl font-extrabold tracking-wide text-white neon-text line-clamp-1">
               Tap to Spin!
             </div>
@@ -208,12 +208,15 @@
       </div>
 
       <!-- Add New Character Form -->
-      <form id="addCharForm" class="py-4 border-b border-slate-800 flex gap-2">
-        <input type="text" id="newEmoji" placeholder="Emoji (e.g. 🦸‍♂️)" required maxlength="4" class="w-20 px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-center text-xl text-white focus:outline-none focus:border-pink-500">
-        <input type="text" id="newName" placeholder="Character Name" required class="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 text-sm font-sans">
-        <button type="submit" class="px-4 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 font-bold text-white text-sm active:scale-95 transition flex items-center gap-1">
-          <i class="fa-solid fa-plus"></i> Add
-        </button>
+      <form id="addCharForm" class="py-4 border-b border-slate-800 flex flex-col gap-2">
+        <div class="flex gap-2">
+          <input type="text" id="newEmoji" placeholder="Emoji" aria-label="Character emoji (optional when using clipart)" maxlength="4" class="w-20 px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-center text-xl text-white focus:outline-none focus:border-pink-500">
+          <input type="text" id="newName" placeholder="Character Name" required class="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 text-sm font-sans">
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 font-bold text-white text-sm active:scale-95 transition flex items-center gap-1">
+            <i class="fa-solid fa-plus"></i> Add
+          </button>
+        </div>
+        <input type="text" id="newImage" placeholder="Clipart path (e.g. characters/hero.png)" aria-label="Clipart image path" class="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 text-sm font-sans">
       </form>
 
       <!-- Scrollable List of Characters -->
@@ -282,6 +285,7 @@
     const addCharForm = document.getElementById('addCharForm');
     const newEmojiInput = document.getElementById('newEmoji');
     const newNameInput = document.getElementById('newName');
+    const newImageInput = document.getElementById('newImage');
     const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
 
     // Initialize Web Audio Context on User Gesture
@@ -294,6 +298,24 @@
       }
       if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
+      }
+    }
+
+    function showCharacterArtwork(character, container = charEmoji) {
+      container.replaceChildren();
+      if (character.image) {
+        const image = document.createElement('img');
+        image.src = character.image;
+        image.alt = `${character.name} clipart`;
+        image.className = 'w-full h-full object-contain drop-shadow-md';
+        image.addEventListener('error', () => {
+          if (image.parentElement === container) {
+            container.textContent = character.emoji || '⭐';
+          }
+        }, { once: true });
+        container.appendChild(image);
+      } else {
+        container.textContent = character.emoji || '⭐';
       }
     }
 
@@ -436,7 +458,7 @@
         currentIndex = (currentIndex + 1) % characters.length;
         const item = characters[currentIndex];
 
-        charEmoji.textContent = item.emoji;
+        showCharacterArtwork(item);
         charName.textContent = item.name;
         charSubtitle.textContent = item.title || "Selected Character";
 
@@ -488,19 +510,58 @@
       characterList.innerHTML = '';
       characters.forEach((char, index) => {
         const item = document.createElement('div');
-        item.className = 'flex items-center justify-between p-3 rounded-2xl bg-slate-800/80 border border-slate-700/60';
-        item.innerHTML = `
-          <div class="flex items-center gap-3 overflow-hidden">
-            <span class="text-2xl">${char.emoji}</span>
-            <div class="truncate">
-              <div class="font-bold text-white text-sm truncate">${char.name}</div>
-              ${char.title ? `<div class="text-xs text-slate-400 truncate">${char.title}</div>` : ''}
-            </div>
-          </div>
-          <button onclick="removeCharacter(${index})" class="text-slate-400 hover:text-red-400 p-2 rounded-xl transition" title="Remove">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        `;
+        item.className = 'flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-2xl bg-slate-800/80 border border-slate-700/60';
+        const details = document.createElement('div');
+        details.className = 'flex items-center gap-3 overflow-hidden flex-1';
+        const artwork = document.createElement('span');
+        artwork.className = 'w-10 h-10 shrink-0 flex items-center justify-center text-2xl';
+        showCharacterArtwork(char, artwork);
+        const text = document.createElement('div');
+        text.className = 'truncate';
+        const name = document.createElement('div');
+        name.className = 'font-bold text-white text-sm truncate';
+        name.textContent = char.name;
+        text.appendChild(name);
+        if (char.title) {
+          const title = document.createElement('div');
+          title.className = 'text-xs text-slate-400 truncate';
+          title.textContent = char.title;
+          text.appendChild(title);
+        }
+        details.append(artwork, text);
+
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center gap-2';
+        const imagePath = document.createElement('input');
+        imagePath.type = 'text';
+        imagePath.value = char.image || '';
+        imagePath.placeholder = 'Clipart path (characters/...)';
+        imagePath.setAttribute('aria-label', `${char.name} clipart path`);
+        imagePath.className = 'min-w-0 flex-1 sm:w-44 px-2 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs font-sans focus:outline-none focus:border-pink-500';
+        imagePath.addEventListener('change', () => {
+          const previousImage = char.image;
+          const path = imagePath.value.trim();
+          if (path) {
+            char.image = path;
+          } else {
+            delete char.image;
+          }
+          if (saveCharacters()) {
+            renderCharacterList();
+          } else if (previousImage) {
+            char.image = previousImage;
+          } else {
+            delete char.image;
+          }
+        });
+        const removeButton = document.createElement('button');
+        removeButton.className = 'text-slate-400 hover:text-red-400 p-2 rounded-xl transition';
+        removeButton.title = 'Remove';
+        removeButton.setAttribute('aria-label', `Remove ${char.name}`);
+        removeButton.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+        removeButton.addEventListener('click', () => removeCharacter(index));
+        controls.append(imagePath, removeButton);
+        item.append(details, controls);
         characterList.appendChild(item);
       });
     }
@@ -528,11 +589,15 @@
       const name = newNameInput.value.trim();
 
       if (name) {
-        characters.unshift({ name, emoji, title: "Custom Hero" });
+        const character = { name, emoji, title: "Custom Hero" };
+        const image = newImageInput.value.trim();
+        if (image) character.image = image;
+        characters.unshift(character);
         saveCharacters();
         renderCharacterList();
         newEmojiInput.value = '';
         newNameInput.value = '';
+        newImageInput.value = '';
       }
     });
 
