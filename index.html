@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Which Character Are You?</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Fredoka & Outfit for fun kid-friendly typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      font-family: 'Fredoka', cursive, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* Video mirroring for front camera */
+    .mirror {
+      transform: scaleX(-1);
+    }
+
+    /* Forehead Box Floating Animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.02); }
+    }
+
+    /* Shuffling Jitter Animation */
+    @keyframes fastShuffle {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.05) rotate(-2deg); }
+      75% { transform: scale(1.05) rotate(2deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    /* Winner Bounce Animation */
+    @keyframes winnerPop {
+      0% { transform: scale(0.6) rotate(-5deg); opacity: 0; }
+      50% { transform: scale(1.25) rotate(3deg); }
+      75% { transform: scale(0.95) rotate(-1deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .animate-shuffle {
+      animation: fastShuffle 0.08s infinite;
+    }
+
+    .animate-winner {
+      animation: winnerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* Glowing box neon borders */
+    .neon-box {
+      box-shadow: 0 0 25px rgba(236, 72, 153, 0.6), 0 0 10px rgba(99, 102, 241, 0.4);
+    }
+
+    .neon-text {
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    /* Custom scrollbar for character manager modal */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(236, 72, 153, 0.6);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen overflow-hidden flex flex-col items-center justify-between p-4 sm:p-6 select-none">
+
+  <!-- Header Controls Bar -->
+  <header class="w-full max-w-4xl z-30 flex items-center justify-between bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-800 shadow-xl">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-violet-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
+        <i class="fa-solid font-bold text-xl text-white">🎭</i>
+      </div>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent leading-tight">
+          Who Are You?
+        </h1>
+        <p class="text-xs text-slate-400 font-sans hidden sm:block">Snapchat Style iPad Character Selector</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- Mute/Unmute Audio Button -->
+      <button id="toggleAudioBtn" class="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 transition border border-slate-700/50 text-slate-200" title="Toggle Sound">
+        <i id="audioIcon" class="fa-solid fa-volume-high text-lg"></i>
+      </button>
+
+      <!-- Camera Flip Switch -->
+      <button id="flipCamBtn" class="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 transition border border-slate-700/50 text-slate-200" title="Flip Camera">
+        <i class="fa-solid fa-camera-rotate text-lg"></i>
+      </button>
+
+      <!-- Edit Roster Button -->
+      <button id="openManagerBtn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:scale-95 transition shadow-lg shadow-pink-600/20 font-bold text-sm flex items-center gap-2">
+        <i class="fa-solid fa-gear"></i>
+        <span class="hidden sm:inline">Characters</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport / Camera Frame Container -->
+  <main class="relative w-full max-w-2xl flex-1 my-3 flex items-center justify-center">
+
+    <div id="cameraViewport" class="relative w-full h-[68vh] sm:h-[72vh] rounded-3xl overflow-hidden bg-slate-900 border-4 border-slate-800/80 shadow-2xl flex items-center justify-center">
+
+      <!-- WebCam Video Stream -->
+      <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover mirror"></video>
+
+      <!-- Fallback / Permission Prompt display -->
+      <div id="cameraPrompt" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-center p-6 space-y-4">
+        <div class="w-20 h-20 rounded-full bg-slate-800 border-2 border-pink-500/40 flex items-center justify-center text-4xl animate-pulse">
+          📷
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-slate-200">Camera Access Needed</h2>
+          <p class="text-sm text-slate-400 max-w-xs mt-1 font-sans">
+            Please allow camera permissions to place the character filter on your face!
+          </p>
+        </div>
+        <button id="startCamBtn" class="px-6 py-3 rounded-2xl bg-pink-500 hover:bg-pink-600 active:scale-95 transition font-bold text-white shadow-lg shadow-pink-500/30 flex items-center gap-2">
+          <i class="fa-solid fa-video"></i> Start Camera
+        </button>
+      </div>
+
+      <!-- Forehead Filter Overlay Container -->
+      <div id="overlayAnchor" class="absolute top-6 left-1/2 -translate-x-1/2 z-20 transition-all duration-300 pointer-events-none w-[85%] max-w-sm">
+        
+        <!-- Overhead Display Box -->
+        <div id="filterCard" class="neon-box animate-float rounded-2xl p-4 bg-gradient-to-b from-slate-900/95 via-purple-950/90 to-slate-900/95 border-2 border-pink-500/60 backdrop-blur-md text-center flex flex-col items-center justify-center min-h-[140px] shadow-2xl transition-all">
+          
+          <!-- Banner Title -->
+          <div class="uppercase tracking-widest text-[11px] font-black text-pink-400/90 mb-1 flex items-center gap-1.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+            Which Character Are You?
+            <span class="inline-block w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+          </div>
+
+          <!-- Active Character Display Content -->
+          <div id="cardContent" class="flex flex-col items-center justify-center w-full py-1">
+            <div id="charEmoji" class="text-5xl sm:text-6xl mb-1 filter drop-shadow-md transition-transform">❓</div>
+            <div id="charName" class="text-2xl sm:text-3xl font-extrabold tracking-wide text-white neon-text line-clamp-1">
+              Tap to Spin!
+            </div>
+            <div id="charSubtitle" class="text-xs font-semibold text-purple-300/80 mt-0.5">
+              Ready for action
+            </div>
+          </div>
+
+          <!-- Bottom Decorative Pointer Arrow -->
+          <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[14px] border-t-pink-500/80 drop-shadow-md"></div>
+        </div>
+      </div>
+
+      <!-- Full Screen Click/Tap Trigger Zone (Invisible overlay during shuffle) -->
+      <div id="tapZone" class="absolute inset-0 z-10 cursor-pointer"></div>
+
+    </div>
+  </main>
+
+  <!-- Bottom Control Action Bar -->
+  <footer class="w-full max-w-4xl z-30 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <!-- Quick Tip Text -->
+    <div class="text-xs text-slate-400 text-center sm:text-left flex items-center gap-2 font-sans bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-800">
+      <i class="fa-solid fa-lightbulb text-amber-400"></i>
+      <span>Tip: Tap anywhere on the camera view to trigger the spin!</span>
+    </div>
+
+    <!-- Main Spin Action Button -->
+    <button id="spinBtn" class="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:brightness-110 active:scale-95 transition shadow-xl shadow-purple-600/40 text-xl font-extrabold tracking-wider text-white uppercase flex items-center justify-center gap-3">
+      <i class="fa-solid fa-dice text-2xl animate-spin-slow"></i>
+      <span>SPIN WHEEL!</span>
+    </button>
+  </footer>
+
+  <!-- Character Roster Settings Modal -->
+  <div id="managerModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-solid fa-users text-pink-500 text-xl"></i>
+          <h3 class="text-xl font-bold text-white">Customize Characters</h3>
+        </div>
+        <button id="closeManagerBtn" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Add New Character Form -->
+      <form id="addCharForm" class="py-4 border-b border-slate-800 flex gap-2">
+        <input type="text" id="newEmoji" placeholder="Emoji (e.g. 🦸‍♂️)" required maxlength="4" class="w-20 px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-center text-xl text-white focus:outline-none focus:border-pink-500">
+        <input type="text" id="newName" placeholder="Character Name" required class="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 text-sm font-sans">
+        <button type="submit" class="px-4 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 font-bold text-white text-sm active:scale-95 transition flex items-center gap-1">
+          <i class="fa-solid fa-plus"></i> Add
+        </button>
+      </form>
+
+      <!-- Scrollable List of Characters -->
+      <div class="flex-1 overflow-y-auto py-4 space-y-2.5 pr-1" id="characterList">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+        <button id="resetDefaultsBtn" class="text-xs text-slate-400 hover:text-pink-400 transition underline font-sans">
+          Reset to Default Characters
+        </button>
+        <button id="saveManagerBtn" class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm transition">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Default Preset Characters List
+    const DEFAULT_CHARACTERS = [
+      { name: "Spider-Man", emoji: "🕷️", title: "Web Slinger" },
+      { name: "Batman", emoji: "🦇", title: "The Dark Knight" },
+      { name: "Super Mario", emoji: "🍄", title: "Mushroom Kingdom Hero" },
+      { name: "Pikachu", emoji: "⚡", title: "Electric Mouse" },
+      { name: "Elsa", emoji: "❄️", title: "Ice Queen" },
+      { name: "Sonic The Hedgehog", emoji: "🦔", title: "Super Fast Speedster" },
+      { name: "Iron Man", emoji: "🤖", title: "Genius Billionaire" },
+      { name: "SpongeBob", emoji: "🧽", title: "Bikini Bottom Chef" },
+      { name: "Wonder Woman", emoji: "🛡️", title: "Amazonian Warrior" },
+      { name: "Minecraft Steve", emoji: "⛏️", title: "Master Builder" },
+      { name: "Simba", emoji: "🦁", title: "The Lion King" },
+      { name: "Shrek", emoji: "👹", title: "Swamp Champion" },
+      { name: "Buzz Lightyear", emoji: "🚀", title: "Space Ranger" },
+      { name: "T-Rex", emoji: "🦖", title: "Prehistoric King" }
+    ];
+
+    // State Variables
+    let characters = JSON.parse(localStorage.getItem('wh_characters')) || [...DEFAULT_CHARACTERS];
+    let isSpinning = false;
+    let audioEnabled = true;
+    let currentStream = null;
+    let facingMode = 'user'; // 'user' (front) or 'environment' (back)
+    let audioCtx = null;
+
+    // DOM Elements
+    const videoEl = document.getElementById('webcam');
+    const cameraPrompt = document.getElementById('cameraPrompt');
+    const startCamBtn = document.getElementById('startCamBtn');
+    const flipCamBtn = document.getElementById('flipCamBtn');
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    const audioIcon = document.getElementById('audioIcon');
+    const spinBtn = document.getElementById('spinBtn');
+    const tapZone = document.getElementById('tapZone');
+    const filterCard = document.getElementById('filterCard');
+    const charEmoji = document.getElementById('charEmoji');
+    const charName = document.getElementById('charName');
+    const charSubtitle = document.getElementById('charSubtitle');
+    const managerModal = document.getElementById('managerModal');
+    const openManagerBtn = document.getElementById('openManagerBtn');
+    const closeManagerBtn = document.getElementById('closeManagerBtn');
+    const saveManagerBtn = document.getElementById('saveManagerBtn');
+    const characterList = document.getElementById('characterList');
+    const addCharForm = document.getElementById('addCharForm');
+    const newEmojiInput = document.getElementById('newEmoji');
+    const newNameInput = document.getElementById('newName');
+    const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+
+    // Initialize Web Audio Context on User Gesture
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Play Shuffling Sound Effect using Web Audio Synth
+    function playTickSound() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        // Random pitch for mechanical slot machine tick
+        osc.frequency.setValueAtTime(300 + Math.random() * 200, audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.04);
+      } catch (e) {
+        // Audio fallback ignore
+      }
+    }
+
+    // Play Victory Fanfare Sound Effect
+    function playVictorySound() {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + index * 0.08);
+          
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime + index * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + index * 0.08 + 0.3);
+          
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          
+          osc.start(audioCtx.currentTime + index * 0.08);
+          osc.stop(audioCtx.currentTime + index * 0.08 + 0.3);
+        });
+      } catch (e) {
+        // Audio fallback ignore
+      }
+    }
+
+    // Initialize Camera Stream
+    async function startCamera() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: facingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoEl.srcObject = currentStream;
+        cameraPrompt.classList.add('hidden');
+
+        // Apply mirror effect for front camera only
+        if (facingMode === 'user') {
+          videoEl.classList.add('mirror');
+        } else {
+          videoEl.classList.remove('mirror');
+        }
+      } catch (err) {
+        console.warn("Camera access denied or unavailable:", err);
+        cameraPrompt.classList.remove('hidden');
+      }
+    }
+
+    // Flip Front/Back Camera
+    flipCamBtn.addEventListener('click', () => {
+      facingMode = (facingMode === 'user') ? 'environment' : 'user';
+      startCamera();
+    });
+
+    startCamBtn.addEventListener('click', () => {
+      initAudio();
+      startCamera();
+    });
+
+    // Sound Toggle Button
+    toggleAudioBtn.addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      if (audioEnabled) {
+        audioIcon.className = 'fa-solid fa-volume-high text-lg';
+        toggleAudioBtn.classList.remove('opacity-50');
+      } else {
+        audioIcon.className = 'fa-solid fa-volume-xmark text-lg';
+        toggleAudioBtn.classList.add('opacity-50');
+      }
+    });
+
+    // Confetti Explosion Handler
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.3 },
+          colors: ['#ec4899', '#8b5cf6', '#3b82f6', '#f59e0b', '#10b981']
+        });
+      }
+    }
+
+    // Main Roulette Spinning Functionality
+    function spinRoulette() {
+      if (isSpinning || characters.length === 0) return;
+      
+      initAudio();
+      isSpinning = true;
+      spinBtn.disabled = true;
+      spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      // Reset Card Styling
+      filterCard.classList.remove('animate-float', 'animate-winner');
+      filterCard.classList.add('animate-shuffle');
+
+      let speed = 40; // Initial shuffle interval in milliseconds
+      let counter = 0;
+      const totalSteps = 35 + Math.floor(Math.random() * 15); // Total shuffle cycles
+      let currentIndex = Math.floor(Math.random() * characters.length);
+
+      function shuffleStep() {
+        // Select next character
+        currentIndex = (currentIndex + 1) % characters.length;
+        const item = characters[currentIndex];
+
+        charEmoji.textContent = item.emoji;
+        charName.textContent = item.name;
+        charSubtitle.textContent = item.title || "Selected Character";
+
+        playTickSound();
+        counter++;
+
+        if (counter < totalSteps) {
+          // Slow down physics gradually near the end
+          if (counter > totalSteps - 12) {
+            speed += 25;
+          } else if (counter > totalSteps - 6) {
+            speed += 50;
+          }
+          setTimeout(shuffleStep, speed);
+        } else {
+          // Landed on Winner
+          finishSpin(item);
+        }
+      }
+
+      shuffleStep();
+    }
+
+    // Complete Spin & Showcase Winner
+    function finishSpin(winner) {
+      isSpinning = false;
+      spinBtn.disabled = false;
+      spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+      filterCard.classList.remove('animate-shuffle');
+      filterCard.classList.add('animate-winner');
+
+      playVictorySound();
+      triggerConfetti();
+
+      // Return to soft floating state after animation completes
+      setTimeout(() => {
+        filterCard.classList.remove('animate-winner');
+        filterCard.classList.add('animate-float');
+      }, 600);
+    }
+
+    // Trigger listeners
+    spinBtn.addEventListener('click', spinRoulette);
+    tapZone.addEventListener('click', spinRoulette);
+
+    // Render Character List in Modal
+    function renderCharacterList() {
+      characterList.innerHTML = '';
+      characters.forEach((char, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-3 rounded-2xl bg-slate-800/80 border border-slate-700/60';
+        item.innerHTML = `
+          <div class="flex items-center gap-3 overflow-hidden">
+            <span class="text-2xl">${char.emoji}</span>
+            <div class="truncate">
+              <div class="font-bold text-white text-sm truncate">${char.name}</div>
+              ${char.title ? `<div class="text-xs text-slate-400 truncate">${char.title}</div>` : ''}
+            </div>
+          </div>
+          <button onclick="removeCharacter(${index})" class="text-slate-400 hover:text-red-400 p-2 rounded-xl transition" title="Remove">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        `;
+        characterList.appendChild(item);
+      });
+    }
+
+    // Remove Character from List
+    window.removeCharacter = function(index) {
+      if (characters.length <= 2) {
+        alert("You need at least 2 characters for the roulette!");
+        return;
+      }
+      characters.splice(index, 1);
+      saveCharacters();
+      renderCharacterList();
+    };
+
+    // Save list to localStorage
+    function saveCharacters() {
+      localStorage.setItem('wh_characters', JSON.stringify(characters));
+    }
+
+    // Add New Character Form Submit
+    addCharForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const emoji = newEmojiInput.value.trim() || "⭐";
+      const name = newNameInput.value.trim();
+
+      if (name) {
+        characters.unshift({ name, emoji, title: "Custom Hero" });
+        saveCharacters();
+        renderCharacterList();
+        newEmojiInput.value = '';
+        newNameInput.value = '';
+      }
+    });
+
+    // Reset Defaults
+    resetDefaultsBtn.addEventListener('click', () => {
+      characters = [...DEFAULT_CHARACTERS];
+      saveCharacters();
+      renderCharacterList();
+    });
+
+    // Manager Modal Toggle Handlers
+    openManagerBtn.addEventListener('click', () => {
+      renderCharacterList();
+      managerModal.classList.remove('opacity-0', 'pointer-events-none');
+    });
+
+    closeManagerBtn.addEventListener('click', () => {
+      managerModal.classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    saveManagerBtn.addEventListener('click', () => {
+      managerModal.classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    // Auto start camera on page load
+    window.onload = function() {
+      startCamera();
+    };
+  </script>
+</body>
+</html>
