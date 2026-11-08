@@ -4,21 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Which Character Are You?</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Canvas Confetti Library -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts: Fredoka & Outfit for fun kid-friendly typography -->
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="./vendor/tailwindcss.js"></script>
+  <script src="./vendor/confetti.min.js"></script>
 
   <style>
+    @font-face {
+      font-family: 'Fredoka';
+      src: url('./vendor/fonts/fredoka-latin.woff2') format('woff2');
+      font-style: normal;
+      font-weight: 500 700;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Outfit';
+      src: url('./vendor/fonts/outfit-latin.woff2') format('woff2');
+      font-style: normal;
+      font-weight: 400 800;
+      font-display: swap;
+    }
+
     * {
       font-family: 'Fredoka', cursive, sans-serif;
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+    }
+
+    body .font-sans {
+      font-family: 'Outfit', system-ui, sans-serif;
     }
 
     /* Video mirroring for front camera */
@@ -97,7 +111,7 @@
       box-shadow: 0 8px 14px rgba(59, 76, 202, 0.2);
     }
 
-    body[data-theme="pokemon"] header > div:first-child > div:first-child i {
+    body[data-theme="pokemon"] header > div:first-child > div:first-child span {
       color: #3B4CCA;
     }
 
@@ -244,7 +258,7 @@
   <header class="w-full max-w-4xl z-30 flex items-center justify-between bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-800 shadow-xl">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-500 to-violet-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
-        <i class="fa-solid font-bold text-xl text-white">🎭</i>
+        <span class="font-bold text-xl text-white" aria-hidden="true">🎭</span>
       </div>
       <div>
         <h1 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent leading-tight">
@@ -262,17 +276,17 @@
 
       <!-- Mute/Unmute Audio Button -->
       <button id="toggleAudioBtn" class="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 transition border border-slate-700/50 text-slate-200" title="Toggle Sound">
-        <i id="audioIcon" class="fa-solid fa-volume-high text-lg"></i>
+        <span id="audioIcon" class="text-lg" aria-hidden="true">🔊</span>
       </button>
 
       <!-- Camera Flip Switch -->
       <button id="flipCamBtn" class="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 transition border border-slate-700/50 text-slate-200" title="Flip Camera">
-        <i class="fa-solid fa-camera-rotate text-lg"></i>
+        <span class="text-lg" aria-hidden="true">🔄</span>
       </button>
 
       <!-- Edit Roster Button -->
       <button id="openManagerBtn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:scale-95 transition shadow-lg shadow-pink-600/20 font-bold text-sm flex items-center gap-2">
-        <i class="fa-solid fa-gear"></i>
+        <span aria-hidden="true">⚙️</span>
         <span class="hidden sm:inline">Characters</span>
       </button>
     </div>
@@ -298,7 +312,7 @@
           </p>
         </div>
         <button id="startCamBtn" class="px-6 py-3 rounded-2xl bg-pink-500 hover:bg-pink-600 active:scale-95 transition font-bold text-white shadow-lg shadow-pink-500/30 flex items-center gap-2">
-          <i class="fa-solid fa-video"></i> Start Camera
+          <span aria-hidden="true">📹</span> Start Camera
         </button>
       </div>
 
@@ -341,13 +355,13 @@
   <footer class="w-full max-w-4xl z-30 flex flex-col sm:flex-row items-center justify-between gap-3">
     <!-- Quick Tip Text -->
     <div class="text-xs text-slate-400 text-center sm:text-left flex items-center gap-2 font-sans bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-800">
-      <i class="fa-solid fa-lightbulb text-amber-400"></i>
+      <span class="text-amber-400" aria-hidden="true">💡</span>
       <span>Tip: Tap anywhere on the camera view to trigger the spin!</span>
     </div>
 
     <!-- Main Spin Action Button -->
     <button id="spinBtn" class="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:brightness-110 active:scale-95 transition shadow-xl shadow-purple-600/40 text-xl font-extrabold tracking-wider text-white uppercase flex items-center justify-center gap-3">
-      <i class="fa-solid fa-dice text-2xl animate-spin-slow"></i>
+      <span class="text-2xl animate-spin-slow" aria-hidden="true">🎲</span>
       <span>SPIN WHEEL!</span>
     </button>
   </footer>
@@ -359,11 +373,11 @@
       <!-- Modal Header -->
       <div class="flex items-center justify-between pb-4 border-b border-slate-800">
         <div class="flex items-center gap-2.5">
-          <i class="fa-solid fa-users text-pink-500 text-xl"></i>
+          <span class="text-pink-500 text-xl" aria-hidden="true">👥</span>
           <h3 class="text-xl font-bold text-white">Customize Characters</h3>
         </div>
         <button id="closeManagerBtn" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
+          <span class="text-lg" aria-hidden="true">×</span>
         </button>
       </div>
 
@@ -373,13 +387,14 @@
           <input type="text" id="newEmoji" placeholder="Emoji" aria-label="Character emoji (optional when using clipart)" maxlength="4" class="w-20 px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-center text-xl text-white focus:outline-none focus:border-pink-500">
           <input type="text" id="newName" placeholder="Character Name" required class="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 text-sm font-sans">
           <button type="submit" class="px-4 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 font-bold text-white text-sm active:scale-95 transition flex items-center gap-1">
-            <i class="fa-solid fa-plus"></i> Add
+            <span aria-hidden="true">+</span> Add
           </button>
         </div>
         <select id="newImage" aria-label="Choose character clipart" class="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-pink-500 text-sm font-sans">
           <option value="">Loading clipart...</option>
         </select>
         <p id="imageLibraryStatus" role="status" class="text-xs text-slate-400 font-sans">Loading clipart library...</p>
+        <p id="offlineStatus" role="status" class="text-xs text-slate-400 font-sans">Preparing offline access...</p>
       </form>
 
       <!-- Scrollable List of Characters -->
@@ -456,10 +471,12 @@
     const newNameInput = document.getElementById('newName');
     const newImageInput = document.getElementById('newImage');
     const imageLibraryStatus = document.getElementById('imageLibraryStatus');
+    const offlineStatus = document.getElementById('offlineStatus');
     const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
     const loadManifestCharactersBtn = document.getElementById('loadManifestCharactersBtn');
 
     let characterImages = [];
+    const OFFLINE_CACHE_NAME = 'character-picker-v1';
 
     function populateImageSelect(select, selectedImage = '') {
       select.replaceChildren();
@@ -484,6 +501,34 @@
       select.value = selectedImage;
     }
 
+    async function prepareOfflineCache(images) {
+      if (!('serviceWorker' in navigator) || !window.isSecureContext || !('caches' in window)) {
+        offlineStatus.textContent = 'Offline caching requires GitHub Pages (HTTPS) or localhost.';
+        return;
+      }
+
+      try {
+        await navigator.serviceWorker.register('./service-worker.js');
+        await navigator.serviceWorker.ready;
+        const cache = await caches.open(OFFLINE_CACHE_NAME);
+        const assets = [
+          './',
+          './index.html',
+          './vendor/tailwindcss.js',
+          './vendor/confetti.min.js',
+          './vendor/fonts/fredoka-latin.woff2',
+          './vendor/fonts/outfit-latin.woff2',
+          './characters/manifest.json',
+          ...images.map((image) => `./${image.path}`)
+        ];
+        await cache.addAll(assets);
+        offlineStatus.textContent = `Offline ready — ${images.length} character images cached.`;
+      } catch (error) {
+        console.error('Unable to prepare offline access:', error);
+        offlineStatus.textContent = 'Offline setup failed. Stay online and reload to try again.';
+      }
+    }
+
     async function loadCharacterImages() {
       try {
         const response = await fetch('characters/manifest.json');
@@ -504,6 +549,7 @@
         imageLibraryStatus.textContent = `${images.length} clipart images available`;
         loadManifestCharactersBtn.disabled = images.length === 0;
         renderCharacterList();
+        await prepareOfflineCache(images);
       } catch (error) {
         console.error('Unable to load character clipart:', error);
         imageLibraryStatus.textContent = 'Clipart library unavailable. Check characters/manifest.json.';
@@ -677,10 +723,10 @@
     toggleAudioBtn.addEventListener('click', () => {
       audioEnabled = !audioEnabled;
       if (audioEnabled) {
-        audioIcon.className = 'fa-solid fa-volume-high text-lg';
+        audioIcon.textContent = '🔊';
         toggleAudioBtn.classList.remove('opacity-50');
       } else {
-        audioIcon.className = 'fa-solid fa-volume-xmark text-lg';
+        audioIcon.textContent = '🔇';
         toggleAudioBtn.classList.add('opacity-50');
       }
     });
@@ -821,7 +867,7 @@
         removeButton.className = 'text-slate-400 hover:text-red-400 p-2 rounded-xl transition';
         removeButton.title = 'Remove';
         removeButton.setAttribute('aria-label', `Remove ${char.name}`);
-        removeButton.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+        removeButton.textContent = '🗑️';
         removeButton.addEventListener('click', () => removeCharacter(index));
         controls.append(imagePath, removeButton);
         item.append(details, controls);
