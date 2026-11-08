@@ -210,7 +210,9 @@
     }
 
     body[data-theme="pokemon"] #characterList input,
+    body[data-theme="pokemon"] #characterList select,
     body[data-theme="pokemon"] #managerModal input,
+    body[data-theme="pokemon"] #managerModal select,
     body[data-theme="pokemon"] #managerModal button {
       background-color: #fff;
       border-color: rgba(59, 76, 202, 0.45);
@@ -374,7 +376,10 @@
             <i class="fa-solid fa-plus"></i> Add
           </button>
         </div>
-        <input type="text" id="newImage" placeholder="Clipart path (e.g. characters/hero.png)" aria-label="Clipart image path" class="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 text-sm font-sans">
+        <select id="newImage" aria-label="Choose character clipart" class="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-pink-500 text-sm font-sans">
+          <option value="">Loading clipart...</option>
+        </select>
+        <p id="imageLibraryStatus" role="status" class="text-xs text-slate-400 font-sans">Loading clipart library...</p>
       </form>
 
       <!-- Scrollable List of Characters -->
@@ -445,7 +450,60 @@
     const newEmojiInput = document.getElementById('newEmoji');
     const newNameInput = document.getElementById('newName');
     const newImageInput = document.getElementById('newImage');
+    const imageLibraryStatus = document.getElementById('imageLibraryStatus');
     const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+
+    let characterImages = [];
+
+    function populateImageSelect(select, selectedImage = '') {
+      select.replaceChildren();
+      const noImageOption = document.createElement('option');
+      noImageOption.value = '';
+      noImageOption.textContent = 'Emoji only';
+      select.appendChild(noImageOption);
+
+      characterImages.forEach((image) => {
+        const option = document.createElement('option');
+        option.value = image.path;
+        option.textContent = image.name;
+        select.appendChild(option);
+      });
+
+      if (selectedImage && !characterImages.some((image) => image.path === selectedImage)) {
+        const existingOption = document.createElement('option');
+        existingOption.value = selectedImage;
+        existingOption.textContent = `Other image: ${selectedImage}`;
+        select.appendChild(existingOption);
+      }
+      select.value = selectedImage;
+    }
+
+    async function loadCharacterImages() {
+      try {
+        const response = await fetch('characters/manifest.json');
+        if (!response.ok) {
+          throw new Error(`Clipart manifest request failed (${response.status}).`);
+        }
+
+        const images = await response.json();
+        if (!Array.isArray(images) || !images.every((image) =>
+          image && typeof image.name === 'string' &&
+          typeof image.path === 'string' && image.path.startsWith('characters/')
+        )) {
+          throw new Error('Clipart manifest must contain image names and paths.');
+        }
+
+        characterImages = images;
+        populateImageSelect(newImageInput);
+        imageLibraryStatus.textContent = `${images.length} clipart images available`;
+        renderCharacterList();
+      } catch (error) {
+        console.error('Unable to load character clipart:', error);
+        imageLibraryStatus.textContent = 'Clipart library unavailable. Check characters/manifest.json.';
+      }
+    }
+
+    loadCharacterImages();
 
     const savedTheme = localStorage.getItem('wh_theme');
     const currentTheme = savedTheme === 'pokemon' ? 'pokemon' : 'default';
@@ -703,15 +761,13 @@
 
         const controls = document.createElement('div');
         controls.className = 'flex items-center gap-2';
-        const imagePath = document.createElement('input');
-        imagePath.type = 'text';
-        imagePath.value = char.image || '';
-        imagePath.placeholder = 'Clipart path (characters/...)';
+        const imagePath = document.createElement('select');
         imagePath.setAttribute('aria-label', `${char.name} clipart path`);
         imagePath.className = 'min-w-0 flex-1 sm:w-44 px-2 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-xs font-sans focus:outline-none focus:border-pink-500';
+        populateImageSelect(imagePath, char.image || '');
         imagePath.addEventListener('change', () => {
           const previousImage = char.image;
-          const path = imagePath.value.trim();
+          const path = imagePath.value;
           if (path) {
             char.image = path;
           } else {

@@ -1,0 +1,9 @@
+[
+  { "name": "Bulbasaur", "path": "characters/bulbasaur.png" },
+  { "name": "Charizard", "path": "characters/charizard.png" },
+  { "name": "Charmander", "path": "characters/charmander.png" },
+  { "name": "Eevee", "path": "characters/eevee.png" },
+  { "name": "Mr. Mime", "path": "characters/mr-mime.png" },
+  { "name": "Pikachu", "path": "characters/pikachu.png" },
+  { "name": "Squirtle", "path": "characters/squirtle.png" }
+]
