@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Character Picker">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="./manifest.webmanifest">
   <title>Which Character Are You?</title>
   <script src="./vendor/tailwindcss.js"></script>
   <script src="./vendor/confetti.min.js"></script>
@@ -33,6 +39,42 @@
 
     body .font-sans {
       font-family: 'Outfit', system-ui, sans-serif;
+    }
+
+    body.app-shell {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: max(1rem, env(safe-area-inset-top))
+        max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom))
+        max(1rem, env(safe-area-inset-left));
+    }
+
+    @media (min-width: 640px) {
+      body.app-shell {
+        padding: max(1.5rem, env(safe-area-inset-top))
+          max(1.5rem, env(safe-area-inset-right))
+          max(1.5rem, env(safe-area-inset-bottom))
+          max(1.5rem, env(safe-area-inset-left));
+      }
+    }
+
+    body.app-shell > header,
+    body.app-shell > footer {
+      max-width: min(96vw, 1280px);
+    }
+
+    body.app-shell main {
+      width: 100%;
+      max-width: min(96vw, 1280px);
+      min-height: 0;
+    }
+
+    body.app-shell #cameraViewport {
+      height: min(80dvh, 100%);
+      max-height: 100%;
     }
 
     /* Video mirroring for front camera */
@@ -252,7 +294,7 @@
     }
   </style>
 </head>
-<body data-theme="default" class="bg-slate-950 text-white min-h-screen overflow-hidden flex flex-col items-center justify-between p-4 sm:p-6 select-none">
+<body data-theme="default" class="app-shell bg-slate-950 text-white min-h-screen overflow-hidden flex flex-col items-center justify-between p-4 sm:p-6 select-none">
 
   <!-- Header Controls Bar -->
   <header class="w-full max-w-4xl z-30 flex items-center justify-between bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-800 shadow-xl">
@@ -518,6 +560,7 @@
           './vendor/confetti.min.js',
           './vendor/fonts/fredoka-latin.woff2',
           './vendor/fonts/outfit-latin.woff2',
+          './manifest.webmanifest',
           './characters/manifest.json',
           ...images.map((image) => `./${image.path}`)
         ];
